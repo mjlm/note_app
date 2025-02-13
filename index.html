@@ -1,237 +1,39 @@
+<!DOCTYPE html>
 <html>
-<!--
-    Simple Note Taking App
-
-    A lightweight, single-file note taking app that runs entirely in the browser.
-    Each note gets a unique 5-character ID that's stored in the URL, making notes
-    bookmarkable and accessible across browser restarts.
-
-    Features:
-    - Automatic saving to localStorage (browser-specific)
-    - Persistent across browser restarts via URL-based IDs
-    - Real-time word, line, and character counting
-    - Automatic cleanup of old notes when storage is full
-    - Clean, minimalist interface
-
-    Storage:
-    - Notes are saved in browser's localStorage (not shared between browsers/devices)
-    - When storage is full, least recently edited notes are automatically removed
-    - ~5MB total storage (browser dependent)
-    - Each note ID: 5 chars from UUID
-    
-    Usage:
-    - Open page to create a new note
-    - Bookmark URL to save note for later
-    - Notes are saved automatically while typing
-    - Note content is stored locally in your browser only
-    - The same URL in different browsers will have different content
--->
 <head>
     <title>New Note</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%93%9D%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E" />
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            background-color: rgb(250, 250, 252);
-            font-family: "Consolas", "Roboto Mono", monospace;
-        }
-        .container {
-            max-width: 700px;
-            width: 100%;
-            margin: 2rem 2rem 0.5rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            transition: box-shadow 0.2s ease;
-        }
-        .container:focus-within {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        textarea {
-            width: 100%;
-            height: calc(100vh - 5rem);
-            padding: 20px;
-            box-sizing: border-box;
-            border: none;
-            outline: none;
-            resize: none;
-            font-family: inherit;
-            font-size: 17px;
-            border-radius: 12px;
-            color: rgb(30, 30, 30);
-            font-weight: 300;
-        }
-        .status-bar {
-            margin: 4px 2rem;
-            color: rgb(180, 180, 190);
-            font-size: 12px;
-            font-family: inherit;
-        }
-        .save-indicator {
-            opacity: 0;
-            transition: opacity 0.5s;
-            margin-left: 0.5rem;
-        }
-        .save-indicator.visible {
-            opacity: 1;
-        }
-        ::placeholder {
-            color: rgb(180, 180, 190);
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div style="width: 100%; max-width: 700px;">
-        <div class="container">
+    <div class="container">
+        <div class="editor">
             <textarea id="notepad" autofocus placeholder="Start typing..."></textarea>
         </div>
         <div class="status-bar">
-            <span id="stats"></span>
-            <span>id: </span><span id="note-id"></span>
-            <span id="save-indicator" class="save-indicator">Saved.</span>
+            <div>
+                <span id="stats"></span>
+                <span>id: </span><span id="note-id"></span>
+                <span id="save-indicator" class="save-indicator">Saved.</span>
+            </div>
+            <div>
+                <a href="#" id="show-all-notes" style="color: inherit;">all</a>
+            </div>
         </div>
     </div>
-    <script>
-        // Get or generate note ID from URL hash
-        let noteId;
-        if (window.location.hash) {
-            noteId = window.location.hash.slice(1); // Remove the # character
-        } else {
-            noteId = window.crypto.randomUUID().slice(0, 5);
-            window.location.hash = noteId;
-        }
-
-        const textarea = document.getElementById("notepad");
-        const noteIdElement = document.getElementById("note-id");
-        const saveIndicator = document.getElementById("save-indicator");
-        const statsElement = document.getElementById("stats");
-        
-        // Display the note ID
-        noteIdElement.textContent = noteId;
-
-        // Function to update statistics
-        function updateStats() {
-            const text = textarea.value;
-            const lines = text.split('\n').length;
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const chars = text.length;
-            statsElement.textContent = `lines: ${lines}, words: ${words}, chars: ${chars}, `;
-        }
-
-        // Function to show save indicator
-        function showSaveIndicator(message = 'Saved.') {
-            saveIndicator.textContent = message;
-            saveIndicator.classList.add("visible");
-            setTimeout(() => {
-                saveIndicator.classList.remove("visible");
-            }, 500);
-        }
-
-        // Function to save note with timestamp
-        function saveNote(id, content) {
-            const noteData = {
-                content: content,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(`note_${id}`, JSON.stringify(noteData));
-        }
-
-        // Function to load note
-        function loadNote(id) {
-            const data = localStorage.getItem(`note_${id}`);
-            if (!data) return null;
-            try {
-                return JSON.parse(data);
-            } catch (e) {
-                // Handle old format (plain text)
-                return { content: data, timestamp: 0 };
-            }
-        }
-
-        // Function to make space by removing old notes
-        function makeSpace(neededSpace) {
-            const notes = [];
-            // Collect all notes with their timestamps
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('note_')) {
-                    const data = loadNote(key.slice(5));
-                    notes.push({
-                        id: key.slice(5),
-                        timestamp: data.timestamp,
-                        size: JSON.stringify(data).length
-                    });
-                }
-            }
-            
-            // Sort by timestamp (oldest first)
-            notes.sort((a, b) => a.timestamp - b.timestamp);
-            
-            // Remove old notes until we have enough space
-            for (const note of notes) {
-                if (note.id === noteId) continue; // Don't delete current note
-                localStorage.removeItem(`note_${note.id}`);
-                showSaveIndicator('Removed old note to make space');
-                if (JSON.stringify(textarea.value).length <= neededSpace) {
-                    return true; // We have enough space now
-                }
-            }
-            return false; // Couldn't make enough space
-        }
-
-        // Load saved content if it exists
-        const savedData = loadNote(noteId);
-        if (savedData) {
-            textarea.value = savedData.content;
-            const firstLine = savedData.content.split('\n')[0];
-            document.title = firstLine.substring(0, 20) || "New Note";
-            updateStats();
-        } else {
-            updateStats();
-        }
-
-        // Save content whenever it changes
-        textarea.addEventListener("input", () => {
-            const firstLine = textarea.value.split('\n')[0];
-            document.title = firstLine.substring(0, 20) || "New Note";
-            try {
-                saveNote(noteId, textarea.value);
-                updateStats();
-                showSaveIndicator();
-            } catch (e) {
-                if (e.name === 'QuotaExceededError') {
-                    if (makeSpace(JSON.stringify(textarea.value).length)) {
-                        try {
-                            saveNote(noteId, textarea.value);
-                            updateStats();
-                            showSaveIndicator();
-                        } catch (e) {
-                            saveIndicator.textContent = 'Save failed!';
-                            saveIndicator.classList.add("visible");
-                        }
-                    } else {
-                        saveIndicator.textContent = 'Storage full! Could not make space.';
-                        saveIndicator.classList.add("visible");
-                    }
-                } else {
-                    saveIndicator.textContent = 'Save failed!';
-                    saveIndicator.classList.add("visible");
-                }
-            }
-        });
-
-        // Save content before the page is unloaded
-        window.addEventListener("beforeunload", () => {
-            try {
-                saveNote(noteId, textarea.value);
-            } catch (e) {
-                // Can't show UI feedback during unload
-                console.error('Failed to save:', e);
-            }
-        });
-    </script>
+    <div id="notes-table" class="notes-table">
+        <span class="close-button" id="close-table">x</span>
+        <table>
+            <thead>
+                <tr>
+                    <th class="id-column">ID</th>
+                    <th class="date-column">Last Modified</th>
+                    <th>Content</th>
+                </tr>
+            </thead>
+            <tbody id="notes-list"></tbody>
+        </table>
+    </div>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
