@@ -1,8 +1,7 @@
 :root {
     --bg-color: rgb(250, 250, 252);
-    --text-color: rgb(30, 30, 30);
+    --text-color: rgb(100, 100, 100);
     --muted-color: rgb(180, 180, 190);
-    --header-color: rgb(100, 100, 110);
     --shadow-light: rgba(0, 0, 0, 0.03);
     --shadow-medium: rgba(0, 0, 0, 0.1);
     --shadow-heavy: rgba(0, 0, 0, 0.1);
@@ -14,7 +13,7 @@ body {
     display: flex;
     justify-content: center;
     background-color: var(--bg-color);
-    font-family: "Consolas", "Roboto Mono", monospace;
+    font-family: "Noto Sans Mono", "Consolas", "Roboto Mono", monospace;
 }
 
 .container {
@@ -27,7 +26,7 @@ body {
 
 .editor {
     background: white;
-    border-radius: 12px;
+    border-radius: 3px;
     box-shadow: 0 4px 12px var(--shadow-light);
     transition: box-shadow 0.2s ease;
 }
@@ -39,16 +38,16 @@ body {
 textarea {
     width: 100%;
     height: calc(100vh - 5rem);
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
     border: none;
     outline: none;
     resize: none;
     font-family: inherit;
-    font-size: 17px;
+    font-size: 16px;
+    font-weight: 500;
     border-radius: 12px;
     color: var(--text-color);
-    font-weight: 300;
 }
 
 .status-bar {
@@ -79,6 +78,7 @@ textarea {
 .notes-table table {
     border-collapse: collapse;
     width: 100%;
+    font-size: 12px;
 }
 
 .notes-table th, 
@@ -86,18 +86,20 @@ textarea {
     padding: 3px;
     text-align: left;
     border-bottom: 1px solid #eee;
+    color: var(--text-color);
 }
 
 .notes-table th {
-    color: var(--header-color);
+    color: var(--muted-color);
+    font-weight: 400;
 }
 
 .notes-table .id-column {
-    width: 50px;
+    width: 60px;
 }
 
 .notes-table .date-column {
-    width: 200px;
+    width: 220px;
 }
 
 .close-button {
