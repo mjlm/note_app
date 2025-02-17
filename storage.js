@@ -6,15 +6,23 @@ export class NoteStorage {
     /**
      * Saves a note with the given ID and content to localStorage.
      * Adds a timestamp to track when the note was last modified.
+     * Only saves notes that contain non-whitespace characters.
      * @param {string} id - The unique identifier for the note.
      * @param {string} content - The content of the note to save.
+     * @returns {boolean} True if the note was saved, false if it was empty or whitespace-only.
      */
     static save(id, content) {
+        // Check if content is empty or contains only whitespace
+        if (!content || !content.trim()) {
+            return false;
+        }
+
         const noteData = {
             content,
             timestamp: Date.now()
         };
         localStorage.setItem(`note_${id}`, JSON.stringify(noteData));
+        return true;
     }
 
     /**

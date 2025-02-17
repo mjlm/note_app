@@ -90,12 +90,13 @@ class NoteApp {
     /**
      * Saves the current note content to storage.
      * Handles storage quota errors by attempting to remove old notes if needed.
-     * Returns true if save was successful, false otherwise.
+     * Returns true if save was successful, false if there was an error.
      */
     saveNote() {
         try {
-            NoteStorage.save(this.noteId, this.textarea.value);
-            return true;
+            const saveResult = NoteStorage.save(this.noteId, this.textarea.value);
+            // If save returned false, it means the note was empty - this is not an error
+            return saveResult !== false;
         } catch (e) {
             // If we're out of storage space, try to make room by removing the oldest note
             if (e.name === "QuotaExceededError" && NoteStorage.removeOldestNote(this.noteId)) {
@@ -111,9 +112,12 @@ class NoteApp {
      */
     handleInput() {
         this.updateTitle();
-        if (this.saveNote()) {
-            this.updateStats();
-            this.showSaveIndicator();
+        this.updateStats();
+        
+        // Always try to save, but only show indicator if content is not empty
+        const saveResult = this.saveNote();
+        if (this.textarea.value.trim()) {
+            this.showSaveIndicator(saveResult ? "Saved." : "Save failed!");
         }
     }
 
