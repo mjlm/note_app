@@ -159,14 +159,35 @@ class NoteApp {
     }
 
     /**
+     * Gets URL parameters from the current location.
+     * @returns {URLSearchParams} The URL search parameters
+     */
+    getUrlParams() {
+        return new URLSearchParams(window.location.search);
+    }
+
+    /**
      * Loads the initial note content when the application starts.
      */
     loadInitialNote() {
         const savedData = NoteStorage.load(this.noteId);
-        if (savedData) {
+        const params = this.getUrlParams();
+        const noteContent = params.get('note');
+
+        if (noteContent) {
+            // If we have content in URL param, use it and save as new note
+            this.textarea.value = decodeURIComponent(noteContent);
+            this.saveNote();
+            // Position cursor at the end of the content
+            this.textarea.focus();
+            this.textarea.setSelectionRange(this.textarea.value.length, this.textarea.value.length);
+            // Clear the URL parameter while preserving the hash
+            const newUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, '', newUrl);
+        } else if (savedData) {
             this.textarea.value = savedData.content || '';
-            this.updateTitle();
         }
+        this.updateTitle();
         this.updateStats();
     }
 }

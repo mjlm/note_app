@@ -9,6 +9,7 @@ A lightweight, browser-based note taking app that runs entirely client-side. Eac
 - 📊 Real-time word, line, and character counting
 - 🧹 Automatic cleanup of old notes when storage is full
 - 🎨 Clean, minimalist interface
+- 🚀 Quick note creation via URL parameters
 
 ## Storage Details
 
@@ -26,6 +27,24 @@ Notes are saved in your browser's localStorage, which means:
 4. Note content is stored locally in your browser only
 5. The same URL in different browsers will have different content
 
+### Quick Note Creation
+
+You can create a new note with initial content directly from the URL using the `note` parameter:
+
+```
+http://your-app-url/?note=Your note content here
+```
+
+This is especially useful when setting up browser search keywords. For example, you can:
+1. Create a new search keyword in your browser (e.g., "note")
+2. Set it to expand to: `http://your-app-url/?note=%s`
+3. Then quickly create notes by typing in your address bar:
+   ```
+   note This is my new note content
+   ```
+
+The note will be created with a new unique ID and your content pre-filled.
+
 ## Technical Details
 
 The app is built using vanilla JavaScript with modern ES6 modules and features:
@@ -34,6 +53,7 @@ The app is built using vanilla JavaScript with modern ES6 modules and features:
 - Modular code organization
 - LocalStorage for data persistence
 - URL hash-based routing
+- URL parameter support for quick note creation
 
 ## Privacy
 
